@@ -6,6 +6,7 @@ import fr.takehere.ethereal.utils.Vector2;
 import fr.takehere.ethereal.utils.maths.MathUtils;
 
 import java.awt.*;
+import java.util.AbstractMap;
 import java.util.HashMap;
 
 public class Map {
@@ -67,7 +68,7 @@ public class Map {
         generateMap();
     }
 
-    public void drawRays(Game game){
+    public void render(Game game){
         Graphics2D g2d = game.gameWindow.getGraphics();
 
         Actor player = Raycaster.getInstance().player;
@@ -85,59 +86,60 @@ public class Map {
         Vector2 lastRayLocation = new Vector2(Raycaster.getInstance().gameWindow.getWidth() / 2, 0);
 
         for (int i = 0; i < rayNumber; i++) {
-            double distance = 0;
-            boolean calculate = true;
-            while (calculate){
-                double rayAngle = playerAngle + rayAngleAddition;
-                Vector2 targetLocation = new Vector2((int) (playerCenterLocation.x + Math.cos(Math.toRadians(rayAngle)) * distance)
-                        ,(playerCenterLocation.y + Math.sin(Math.toRadians(rayAngle)) * distance));
+            double rayAngle = playerAngle + rayAngleAddition;
+            Object[] ray = drawRay(rayAngle, player.rotation, playerCenterLocation);
 
-                for (java.util.Map.Entry<Rectangle, Integer> entry : rectanglesData.entrySet()) {
-                    if (MathUtils.isColliding(new Rectangle((int) targetLocation.x, (int) targetLocation.y, 1, 1), entry.getKey())){
-                        if (distance == 0) distance=1;
-                        distance = distance * Math.cos(Math.toRadians(player.rotation - (rayAngle)));
-                        float lineH = (float) ((Raycaster.getInstance().gameWindow.getHeight() * 60) / distance);
-                        float lineUp = (Raycaster.getInstance().gameWindow.getHeight()/2) - (lineH/2);
+            Vector2 targetLocation = (Vector2) ray[0];
+            double distance = (double) ray[1];
+            Color wallColor = convertColor((Integer) ray[2]);
 
-                        Color wallColor = convertColor(entry.getValue());
+            float lineH = (float) ((Raycaster.getInstance().gameWindow.getHeight() * 60) / distance);
+            float lineUp = (Raycaster.getInstance().gameWindow.getHeight()/2) - (lineH/2);
 
-                        g2d.setColor(wallColor);
-                        g2d.setStroke(new BasicStroke(5));
-                        g2d.drawLine((int) playerCenterLocation.x, (int) playerCenterLocation.y, (int) targetLocation.x, (int) targetLocation.y);
 
-                        /*
-                        if (MathUtils.isBetween((float) normalize(rayAngle), 90, 270)){
-                            float hsbVals[] = Color.RGBtoHSB( wallColor.getRed(),
-                                    wallColor.getGreen(),
-                                    wallColor.getBlue(), null );
-                            wallColor = Color.getHSBColor( hsbVals[0], hsbVals[1], 0.5f * hsbVals[2] );
-                        }
-                         */
+            g2d.setColor(wallColor);
+            g2d.setStroke(new BasicStroke(5));
+            g2d.drawLine((int) playerCenterLocation.x, (int) playerCenterLocation.y, (int) targetLocation.x, (int) targetLocation.y);
 
-                        g2d.setColor(wallColor);
-                        g2d.setStroke(new BasicStroke(lineThickness));
-                        g2d.drawLine((int) lastRayLocation.x, (int) lineUp, (int) lastRayLocation.x, (int) (lineH + lineUp));
+            g2d.setColor(wallColor);
+            g2d.setStroke(new BasicStroke(lineThickness));
+            g2d.drawLine((int) lastRayLocation.x, (int) lineUp, (int) lastRayLocation.x, (int) (lineH + lineUp));
 
-                        //Draw Sky
-                        g2d.setColor(new Color(7, 140, 199));
-                        g2d.drawLine((int) lastRayLocation.x, 0, (int) lastRayLocation.x, (int) lineUp);
+            //Draw Sky
+            g2d.setColor(new Color(7, 140, 199));
+            g2d.drawLine((int) lastRayLocation.x, 0, (int) lastRayLocation.x, (int) lineUp);
 
-                        //Draw floor
-                        g2d.setColor(new Color(90, 90, 90));
-                        g2d.drawLine((int) lastRayLocation.x, (int) (lineH + lineUp), (int) lastRayLocation.x, (int) (lineH + lineUp + lineUp));
+            //Draw floor
+            g2d.setColor(new Color(90, 90, 90));
+            g2d.drawLine((int) lastRayLocation.x, (int) (lineH + lineUp), (int) lastRayLocation.x, (int) (lineH + lineUp + lineUp));
 
-                        lastRayLocation = new Vector2(lastRayLocation.x + lineThickness / 2, lastRayLocation.y);
-                        calculate = false;
-                    }
-                }
-                distance+=1;
-            }
+            lastRayLocation = new Vector2(lastRayLocation.x + lineThickness / 2, lastRayLocation.y);
             rayAngleAddition = rayAngleAddition + (1f/resolutionMultiplicator);
         }
 
         g2d.setColor(Color.RED);
         g2d.setStroke(new BasicStroke(5));
         g2d.drawLine((int) playerCenterLocation.x, (int) playerCenterLocation.y, (int) (playerCenterLocation.x + Math.cos(Math.toRadians(player.rotation)) * 40), (int) (playerCenterLocation.y + Math.sin(Math.toRadians(player.rotation)) * 40));
+    }
+
+    public Object[] drawRay(double rayAngle, double playerRotation, Vector2 startLocation){
+        double distance = 1;
+        Vector2 targetVector;
+
+        while (true){
+            targetVector = new Vector2((int) (startLocation.x + Math.cos(Math.toRadians(rayAngle)) * distance)
+                    ,(startLocation.y + Math.sin(Math.toRadians(rayAngle)) * distance));
+
+            for (java.util.Map.Entry<Rectangle, Integer> entry : rectanglesData.entrySet()) {
+                if (MathUtils.isColliding(new Rectangle((int) targetVector.x, (int) targetVector.y, 1, 1), entry.getKey())){
+                    if (distance == 0) distance=1;
+                    distance = distance * Math.cos(Math.toRadians(playerRotation - (rayAngle)));
+
+                    return new Object[]{targetVector, distance, entry.getValue()};
+                }
+            }
+            distance += 1;
+        }
     }
 
     public static double normalize(final double angle) {

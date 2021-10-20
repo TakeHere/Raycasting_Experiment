@@ -2,19 +2,12 @@ package fr.takehere.raycaster;
 
 import fr.takehere.ethereal.Game;
 import fr.takehere.ethereal.objects.Actor;
-import fr.takehere.ethereal.objects.Pawn;
 import fr.takehere.ethereal.utils.ImageUtil;
 import fr.takehere.ethereal.utils.Vector2;
 import fr.takehere.ethereal.utils.maths.MathUtils;
 
 import java.awt.*;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.security.Key;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class Raycaster extends Game {
     private static Raycaster instance;
@@ -31,7 +24,7 @@ public class Raycaster extends Game {
 
     @Override
     public void init() {
-        player = new Actor(new Vector2(75,75), new Dimension(20,20), ImageUtil.getImageRessource("placeholder50.png", getClass()), "Player", this);
+        player = new Actor(new Vector2(75,75), new Dimension(20,20), ImageUtil.placeholder, "Player", this);
     }
 
     float playerSpeed = 2;
@@ -69,11 +62,9 @@ public class Raycaster extends Game {
         }
 
         Map.get().drawMap(this);
-        Map.get().drawRays(this);
+        Map.get().render(this);
 
-        System.out.println(mapHitbox.x);
         if (MathUtils.isColliding(player.boundingBox.getBounds(), mapHitbox)){
-            System.out.println("coll");
             Map.get().map = new int[]{
                     1,1,1,1,
                     1,0,0,1,
