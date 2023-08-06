@@ -1,12 +1,3 @@
-# Raycasting-Engine
+# Raycasting Experiment
 
-A small java raycasting 3d engine made with Ethereal !
-
-<!DOCTYPE html>
-<html>
-<body>
-
-<img src="https://cdn.discordapp.com/attachments/725740286856265779/895037819477717052/C1dbtyfctc.gif" alt="description of gif" /> 
-
-</body>
-</html>
+[⚠️] An experiment in which I test my own implementation of raycasting in Java using [EtherealV2](https://github.com/TakeHere/Ethereal_V2)
